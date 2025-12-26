@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/steipete/gogcli/internal/outfmt"
@@ -86,12 +84,8 @@ func newTasksListCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "ID\tTITLE\tSTATUS\tDUE\tUPDATED")
 			for _, t := range resp.Items {
 				status := strings.TrimSpace(t.Status)
@@ -100,13 +94,7 @@ func newTasksListCmd(flags *rootFlags) *cobra.Command {
 				}
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", t.Id, t.Title, status, strings.TrimSpace(t.Due), strings.TrimSpace(t.Updated))
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}

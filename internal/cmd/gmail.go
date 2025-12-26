@@ -3,12 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/mail"
 	"os"
 	"strings"
 	"sync"
-	"text/tabwriter"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -99,24 +97,14 @@ func newGmailSearchCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 
 			fmt.Fprintln(w, "ID\tDATE\tFROM\tSUBJECT\tLABELS")
 			for _, it := range items {
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", it.ID, it.Date, it.From, it.Subject, strings.Join(it.Labels, ","))
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}

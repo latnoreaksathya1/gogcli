@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -73,22 +71,13 @@ func newCalendarCalendarsCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "ID\tNAME\tROLE")
 			for _, c := range resp.Items {
 				fmt.Fprintf(w, "%s\t%s\t%s\n", c.Id, c.Summary, c.AccessRole)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}
@@ -134,12 +123,8 @@ func newCalendarAclCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "SCOPE_TYPE\tSCOPE_VALUE\tROLE")
 			for _, rule := range resp.Items {
 				scopeType := ""
@@ -150,12 +135,7 @@ func newCalendarAclCmd(flags *rootFlags) *cobra.Command {
 				}
 				fmt.Fprintf(w, "%s\t%s\t%s\n", scopeType, scopeValue, rule.Role)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}
@@ -251,24 +231,14 @@ func listCalendarEvents(cmd *cobra.Command, svc *calendar.Service, calendarID, f
 		return nil
 	}
 
-	var w io.Writer = os.Stdout
-	var tw *tabwriter.Writer
-	if !outfmt.IsPlain(cmd.Context()) {
-		tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-		w = tw
-	}
+	w, flush := tableWriter(cmd.Context())
+	defer flush()
 
 	fmt.Fprintln(w, "ID\tSTART\tEND\tSUMMARY")
 	for _, e := range resp.Items {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", e.Id, eventStart(e), eventEnd(e), e.Summary)
 	}
-	if tw != nil {
-		_ = tw.Flush()
-	}
-
-	if resp.NextPageToken != "" {
-		u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-	}
+	printNextPageHint(u, resp.NextPageToken)
 	return nil
 }
 
@@ -350,21 +320,13 @@ func listAllCalendarsEvents(cmd *cobra.Command, svc *calendar.Service, from, to 
 		return outfmt.WriteJSON(os.Stdout, map[string]any{"events": events})
 	}
 
-	var w io.Writer = os.Stdout
-	var tw *tabwriter.Writer
-	if !outfmt.IsPlain(cmd.Context()) {
-		tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-		w = tw
-	}
+	w, flush := tableWriter(cmd.Context())
+	defer flush()
 
 	fmt.Fprintln(w, "CALENDAR\tID\tSTART\tEND\tSUMMARY")
 	for _, e := range allEvents {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", e.CalendarID, e.Id, eventStart(e.Event), eventEnd(e.Event), e.Summary)
 	}
-	if tw != nil {
-		_ = tw.Flush()
-	}
-
 	return nil
 }
 
@@ -693,20 +655,13 @@ func newCalendarFreeBusyCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "CALENDAR\tSTART\tEND")
 			for id, data := range resp.Calendars {
 				for _, b := range data.Busy {
 					fmt.Fprintf(w, "%s\t%s\t%s\n", id, b.Start, b.End)
 				}
-			}
-			if tw != nil {
-				_ = tw.Flush()
 			}
 			return nil
 		},

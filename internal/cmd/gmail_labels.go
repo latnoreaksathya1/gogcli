@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/steipete/gogcli/internal/outfmt"
@@ -103,18 +101,11 @@ func newGmailLabelsListCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "ID\tNAME\tTYPE")
 			for _, l := range resp.Labels {
 				fmt.Fprintf(w, "%s\t%s\t%s\n", l.Id, l.Name, l.Type)
-			}
-			if tw != nil {
-				_ = tw.Flush()
 			}
 			return nil
 		},

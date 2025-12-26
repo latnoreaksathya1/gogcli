@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/steipete/gogcli/internal/outfmt"
@@ -51,22 +49,13 @@ func newTasksListsCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "ID\tTITLE")
 			for _, tl := range resp.Items {
 				fmt.Fprintf(w, "%s\t%s\n", tl.Id, tl.Title)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}

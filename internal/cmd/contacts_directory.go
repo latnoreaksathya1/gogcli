@@ -3,10 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -90,12 +88,8 @@ func newContactsDirectoryListCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "RESOURCE\tNAME\tEMAIL")
 			for _, p := range resp.People {
 				if p == nil {
@@ -107,13 +101,7 @@ func newContactsDirectoryListCmd(flags *rootFlags) *cobra.Command {
 					sanitizeTab(primaryEmail(p)),
 				)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}
@@ -186,12 +174,8 @@ func newContactsDirectorySearchCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "RESOURCE\tNAME\tEMAIL")
 			for _, p := range resp.People {
 				if p == nil {
@@ -203,13 +187,7 @@ func newContactsDirectorySearchCmd(flags *rootFlags) *cobra.Command {
 					sanitizeTab(primaryEmail(p)),
 				)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}
@@ -287,12 +265,8 @@ func newContactsOtherListCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "RESOURCE\tNAME\tEMAIL\tPHONE")
 			for _, p := range resp.OtherContacts {
 				if p == nil {
@@ -305,13 +279,7 @@ func newContactsOtherListCmd(flags *rootFlags) *cobra.Command {
 					sanitizeTab(primaryPhone(p)),
 				)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}
@@ -377,12 +345,8 @@ func newContactsOtherSearchCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "RESOURCE\tNAME\tEMAIL\tPHONE")
 			for _, r := range resp.Results {
 				p := r.Person
@@ -395,9 +359,6 @@ func newContactsOtherSearchCmd(flags *rootFlags) *cobra.Command {
 					sanitizeTab(primaryEmail(p)),
 					sanitizeTab(primaryPhone(p)),
 				)
-			}
-			if tw != nil {
-				_ = tw.Flush()
 			}
 			return nil
 		},

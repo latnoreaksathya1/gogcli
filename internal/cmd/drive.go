@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/steipete/gogcli/internal/googleapi"
@@ -99,12 +98,8 @@ func newDriveLsCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "ID\tNAME\tTYPE\tSIZE\tMODIFIED")
 			for _, f := range resp.Files {
 				fmt.Fprintf(
@@ -117,13 +112,7 @@ func newDriveLsCmd(flags *rootFlags) *cobra.Command {
 					formatDateTime(f.ModifiedTime),
 				)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}
@@ -182,12 +171,8 @@ func newDriveSearchCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "ID\tNAME\tTYPE\tSIZE\tMODIFIED")
 			for _, f := range resp.Files {
 				fmt.Fprintf(
@@ -200,13 +185,7 @@ func newDriveSearchCmd(flags *rootFlags) *cobra.Command {
 					formatDateTime(f.ModifiedTime),
 				)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}
@@ -751,12 +730,8 @@ func newDrivePermissionsCmd(flags *rootFlags) *cobra.Command {
 				return nil
 			}
 
-			var w io.Writer = os.Stdout
-			var tw *tabwriter.Writer
-			if !outfmt.IsPlain(cmd.Context()) {
-				tw = tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-				w = tw
-			}
+			w, flush := tableWriter(cmd.Context())
+			defer flush()
 			fmt.Fprintln(w, "ID\tTYPE\tROLE\tEMAIL")
 			for _, p := range resp.Permissions {
 				email := p.EmailAddress
@@ -765,13 +740,7 @@ func newDrivePermissionsCmd(flags *rootFlags) *cobra.Command {
 				}
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", p.Id, p.Type, p.Role, email)
 			}
-			if tw != nil {
-				_ = tw.Flush()
-			}
-
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}

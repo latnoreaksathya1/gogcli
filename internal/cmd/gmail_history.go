@@ -63,9 +63,7 @@ func newGmailHistoryCmd(flags *rootFlags) *cobra.Command {
 			for _, id := range ids {
 				u.Out().Println(id)
 			}
-			if resp.NextPageToken != "" {
-				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
-			}
+			printNextPageHint(u, resp.NextPageToken)
 			return nil
 		},
 	}

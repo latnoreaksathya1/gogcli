@@ -40,7 +40,7 @@ func Execute(args []string) error {
 
 	root := &cobra.Command{
 		Use:           "gog",
-		Short:         "Google CLI for Gmail/Calendar/Drive/Contacts/Tasks/People",
+		Short:         "Google CLI for Gmail/Calendar/Drive/Contacts/Tasks/Sheets/Docs/Slides/People",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		CompletionOptions: cobra.CompletionOptions{
@@ -80,6 +80,11 @@ func Execute(args []string) error {
 
 	  # Sheets
 	  gog sheets get <spreadsheetId> 'Sheet1!A1:C10'
+
+	  # Exports
+	  gog sheets export <spreadsheetId> --format pdf
+	  gog docs export <docId> --format docx
+	  gog slides export <presentationId> --format pptx
 
 	  # Parseable output
 	  gog --json drive ls --max 5 | jq .
