@@ -671,7 +671,10 @@ func newDriveUnshareCmd(flags *rootFlags) *cobra.Command {
 }
 
 func newDrivePermissionsCmd(flags *rootFlags) *cobra.Command {
-	return &cobra.Command{
+	var max int64
+	var page string
+
+	cmd := &cobra.Command{
 		Use:   "permissions <fileId>",
 		Short: "List permissions on a file",
 		Args:  cobra.ExactArgs(1),
@@ -689,14 +692,21 @@ func newDrivePermissionsCmd(flags *rootFlags) *cobra.Command {
 			}
 
 			resp, err := svc.Permissions.List(fileID).
+				PageSize(max).
+				PageToken(page).
 				SupportsAllDrives(true).
-				Fields("permissions(id, type, role, emailAddress)").
+				Fields("nextPageToken, permissions(id, type, role, emailAddress)").
 				Do()
 			if err != nil {
 				return err
 			}
 			if outfmt.IsJSON(cmd.Context()) {
-				return outfmt.WriteJSON(os.Stdout, map[string]any{"permissions": resp.Permissions})
+				return outfmt.WriteJSON(os.Stdout, map[string]any{
+					"fileId":          fileID,
+					"permissions":     resp.Permissions,
+					"permissionCount": len(resp.Permissions),
+					"nextPageToken":   resp.NextPageToken,
+				})
 			}
 			if len(resp.Permissions) == 0 {
 				u.Err().Println("No permissions")
@@ -713,9 +723,17 @@ func newDrivePermissionsCmd(flags *rootFlags) *cobra.Command {
 				fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", p.Id, p.Type, p.Role, email)
 			}
 			_ = tw.Flush()
+
+			if resp.NextPageToken != "" {
+				u.Err().Printf("# Next page: --page %s", resp.NextPageToken)
+			}
 			return nil
 		},
 	}
+
+	cmd.Flags().Int64Var(&max, "max", 100, "Max results")
+	cmd.Flags().StringVar(&page, "page", "", "Page token")
+	return cmd
 }
 
 func newDriveURLCmd(flags *rootFlags) *cobra.Command {
