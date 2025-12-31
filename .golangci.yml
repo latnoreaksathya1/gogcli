@@ -8,7 +8,13 @@ linters:
     - errorlint
     - govet
     - ineffassign
+    - makezero
+    - misspell
+    - nilerr
+    - nilnil
+    - prealloc
     - staticcheck
+    - unparam
     - unused
 
   settings:

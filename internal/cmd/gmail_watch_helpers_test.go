@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"strings"
@@ -87,8 +88,8 @@ func TestHookFromFlags(t *testing.T) {
 
 	t.Run("allow no hook", func(t *testing.T) {
 		hook, err := hookFromFlags("", "", false, 0, false, true)
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
+		if err == nil || !errors.Is(err, errNoHookConfigured) {
+			t.Fatalf("expected no hook error, got: %v", err)
 		}
 		if hook != nil {
 			t.Fatalf("expected nil hook")

@@ -54,7 +54,7 @@ func TestExecute_GmailAttachment_OutPath_JSON(t *testing.T) {
 
 	outPath := filepath.Join(t.TempDir(), "a.bin")
 
-	run := func() (string, map[string]any) {
+	run := func() map[string]any {
 		out := captureStdout(t, func() {
 			_ = captureStderr(t, func() {
 				if execErr := Execute([]string{
@@ -71,10 +71,10 @@ func TestExecute_GmailAttachment_OutPath_JSON(t *testing.T) {
 		if unmarshalErr := json.Unmarshal([]byte(out), &parsed); unmarshalErr != nil {
 			t.Fatalf("json parse: %v\nout=%q", unmarshalErr, out)
 		}
-		return out, parsed
+		return parsed
 	}
 
-	_, parsed1 := run()
+	parsed1 := run()
 	if atomic.LoadInt32(&attachmentCalls) != 1 {
 		t.Fatalf("attachmentCalls=%d", attachmentCalls)
 	}
@@ -96,7 +96,7 @@ func TestExecute_GmailAttachment_OutPath_JSON(t *testing.T) {
 		t.Fatalf("content=%q", string(b))
 	}
 
-	_, parsed2 := run()
+	parsed2 := run()
 	if atomic.LoadInt32(&attachmentCalls) != 1 {
 		t.Fatalf("attachmentCalls=%d", attachmentCalls)
 	}

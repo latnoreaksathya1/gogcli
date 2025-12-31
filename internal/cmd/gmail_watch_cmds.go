@@ -18,8 +18,9 @@ import (
 )
 
 var (
-	newOIDCValidator = idtoken.NewValidator
-	listenAndServe   = func(srv *http.Server) error { return srv.ListenAndServe() }
+	newOIDCValidator    = idtoken.NewValidator
+	listenAndServe      = func(srv *http.Server) error { return srv.ListenAndServe() }
+	errNoHookConfigured = errors.New("no hook configured")
 )
 
 type GmailWatchCmd struct {
@@ -55,7 +56,11 @@ func (c *GmailWatchStartCmd) Run(ctx context.Context, kctx *kong.Context, flags 
 	maxChanged := flagProvided(kctx, "max-bytes")
 	hook, err := hookFromFlags(c.HookURL, c.HookToken, c.IncludeBody, c.MaxBytes, maxChanged, false)
 	if err != nil {
-		return err
+		if errors.Is(err, errNoHookConfigured) {
+			hook = nil
+		} else {
+			return err
+		}
 	}
 
 	svc, err := newGmailService(ctx, account)
@@ -248,7 +253,11 @@ func (c *GmailWatchServeCmd) Run(ctx context.Context, kctx *kong.Context, flags 
 	maxChanged := flagProvided(kctx, "max-bytes")
 	hook, err := hookFromFlags(hookURL, hookToken, includeBody, maxBytes, maxChanged, true)
 	if err != nil {
-		return err
+		if errors.Is(err, errNoHookConfigured) {
+			hook = nil
+		} else {
+			return err
+		}
 	}
 	if c.SaveHook && hook != nil {
 		if updateErr := store.Update(func(s *gmailWatchState) error {
@@ -405,7 +414,7 @@ func hookFromFlags(url, token string, includeBody bool, maxBytes int, maxBytesCh
 		if !allowNoHook && (includeBody || maxBytesChanged) {
 			return nil, usage("--hook-url required when setting hook options")
 		}
-		return nil, nil
+		return nil, errNoHookConfigured
 	}
 	if maxBytes <= 0 {
 		if includeBody {

@@ -8,6 +8,8 @@ import (
 )
 
 func TestMainHelpDoesNotExit(t *testing.T) {
+	t.Helper()
+
 	origArgs := os.Args
 	defer func() { os.Args = origArgs }()
 

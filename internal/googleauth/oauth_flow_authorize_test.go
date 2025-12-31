@@ -16,7 +16,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func newTokenServer(t *testing.T, refreshToken string) *httptest.Server {
+func newTokenServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func newTokenServer(t *testing.T, refreshToken string) *httptest.Server {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"access_token":  "at",
-			"refresh_token": refreshToken,
+			"refresh_token": "rt",
 			"token_type":    "Bearer",
 			"expires_in":    3600,
 		})
@@ -68,7 +68,7 @@ func TestAuthorize_Manual_Success(t *testing.T) {
 	}
 	randomStateFn = func() (string, error) { return "state123", nil }
 
-	tokenSrv := newTokenServer(t, "rt")
+	tokenSrv := newTokenServer(t)
 	defer tokenSrv.Close()
 	oauthEndpoint = oauth2EndpointForTest(tokenSrv.URL)
 
@@ -110,7 +110,7 @@ func TestAuthorize_Manual_StateMismatch(t *testing.T) {
 	}
 	randomStateFn = func() (string, error) { return "state123", nil }
 
-	tokenSrv := newTokenServer(t, "rt")
+	tokenSrv := newTokenServer(t)
 	defer tokenSrv.Close()
 	oauthEndpoint = oauth2EndpointForTest(tokenSrv.URL)
 
@@ -148,7 +148,7 @@ func TestAuthorize_ServerFlow_Success(t *testing.T) {
 		return config.ClientCredentials{ClientID: "id", ClientSecret: "secret"}, nil
 	}
 
-	tokenSrv := newTokenServer(t, "rt")
+	tokenSrv := newTokenServer(t)
 	defer tokenSrv.Close()
 	oauthEndpoint = oauth2EndpointForTest(tokenSrv.URL)
 
@@ -210,7 +210,7 @@ func TestAuthorize_ServerFlow_CallbackErrors(t *testing.T) {
 				return config.ClientCredentials{ClientID: "id", ClientSecret: "secret"}, nil
 			}
 
-			tokenSrv := newTokenServer(t, "rt")
+			tokenSrv := newTokenServer(t)
 			defer tokenSrv.Close()
 			oauthEndpoint = oauth2EndpointForTest(tokenSrv.URL)
 

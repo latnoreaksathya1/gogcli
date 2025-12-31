@@ -18,6 +18,8 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
+var errNoNewMessages = errors.New("no new messages")
+
 type gmailWatchServer struct {
 	cfg        gmailWatchServeConfig
 	store      *gmailWatchStore
@@ -63,6 +65,10 @@ func (s *gmailWatchServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	result, err := s.handlePush(r.Context(), payload)
 	if err != nil {
+		if errors.Is(err, errNoNewMessages) {
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
 		s.warnf("watch: handle push failed: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -141,7 +147,7 @@ func (s *gmailWatchServer) handlePush(ctx context.Context, payload gmailPushPayl
 		return nil, err
 	}
 	if startID == 0 {
-		return nil, nil
+		return nil, errNoNewMessages
 	}
 
 	svc, err := s.newService(ctx, s.cfg.Account)

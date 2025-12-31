@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -132,7 +133,7 @@ func TestCalendarTimeCmd_WithTimezoneFlag(t *testing.T) {
 	// No server needed since we're using --timezone flag
 	newCalendarService = func(context.Context, string) (*calendar.Service, error) {
 		t.Fatal("should not call calendar service when --timezone is provided")
-		return nil, nil
+		return nil, errors.New("unexpected calendar service call")
 	}
 
 	out := captureStdout(t, func() {
@@ -174,7 +175,7 @@ func TestCalendarTimeCmd_InvalidTimezone(t *testing.T) {
 	// No server needed since we're testing error case
 	newCalendarService = func(context.Context, string) (*calendar.Service, error) {
 		t.Fatal("should not call calendar service when invalid timezone is provided")
-		return nil, nil
+		return nil, errors.New("unexpected calendar service call")
 	}
 
 	stderr := captureStderr(t, func() {
